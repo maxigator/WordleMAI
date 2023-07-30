@@ -1,3 +1,4 @@
+salet,5700
 soare,5621
 stare,5413
 roate,5396
@@ -15,7 +16,6 @@ raine,5280
 strae,5280
 slane,5261
 crate,5252
-salet,5251
 ariel,5245
 stale,5234
 trace,5216

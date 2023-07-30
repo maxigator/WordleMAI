@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type AiWord struct {
@@ -130,17 +131,21 @@ func getGuess(wordArray []string, aiwordArray []AiWord) string {
 		fmt.Println(strings.Join(words, ","))
 		stat = append(stat, strings.Join(words, ","))
 	}
-	return strings.Join(stat, ",")
+	return strings.Join(stat, "\n")
 }
 
 func executeTKeyPress(wordArray []string, aiwordArray []AiWord) {
+	start := time.Now()
 	result := getGuess(wordArray, aiwordArray)
-	err := ioutil.WriteFile("data.json", []byte(result), 0644)
+	err := ioutil.WriteFile("data.txt", []byte(result), 0644)
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 	} else {
 		fmt.Println("File written successfully!")
 	}
+	t := time.Now()
+	elapsed := t.Sub(start)
+	fmt.Printf("time : %.0f ", elapsed.Seconds())
 }
 
 func main() {
