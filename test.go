@@ -110,6 +110,8 @@ func findPossibleWords(aiguesses []Guess, aiwordArray []AiWord) []AiWord {
 
 func getGuess(wordArray []string, aiwordArray []AiWord) string {
 	var stat []string
+	c := 0
+	avg := 0
 	for _, word := range wordArray {
 		var guesses []Guess
 		possibleWords := findPossibleWords(guesses, aiwordArray)
@@ -136,7 +138,11 @@ func getGuess(wordArray []string, aiwordArray []AiWord) string {
 		for _, guess := range guesses {
 			words = append(words, guess.word)
 		}
-		fmt.Println(strings.Join(words, ","))
+		c += 1
+		avg += len(words)
+		if c%100 == 0 {
+			fmt.Println(float64(avg) / float64(c))
+		}
 		stat = append(stat, strings.Join(words, ","))
 	}
 	return strings.Join(stat, "\n")
