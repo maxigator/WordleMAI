@@ -15,6 +15,11 @@ type AiWord struct {
 	usage int
 }
 
+type Score struct {
+	word  string
+	score int
+}
+
 type Guess struct {
 	word   string
 	scores [5]int
@@ -49,10 +54,13 @@ func getColor(guess, word string, index int) (int, error) {
 	if index >= 5 || index < 0 {
 		return 0, errors.New("Index out of bounds")
 	}
-	letter := guess[index]
+	guessRunes := []rune(guess)
+	wordRunes := []rune(word)
+	letter := guessRunes[index]
 	letterCountInWord := strings.Count(word, string(letter))
 	letterCountInGuess := strings.Count(guess, string(letter))
-	if word[index] == letter {
+
+	if wordRunes[index] == letter {
 		return 2, nil
 	} else if letterCountInWord > 0 && letterCountInGuess <= letterCountInWord {
 		return 1, nil
@@ -134,6 +142,53 @@ func getGuess(wordArray []string, aiwordArray []AiWord) string {
 	return strings.Join(stat, "\n")
 }
 
+func calculateBestGuesses(guessFilePath string, answerFilePath string, outputFilePath string) {
+	// Read and parse the guess words
+	guessFileContent, _ := ioutil.ReadFile(guessFilePath)
+	guessWords := strings.Split(string(guessFileContent), "\n")
+	var fiveLetterGuessWords []string
+	for _, word := range guessWords {
+		if len(word) == 5 {
+			fiveLetterGuessWords = append(fiveLetterGuessWords, word)
+		}
+	}
+
+	// Read and parse the answer words
+	answerFileContent, _ := ioutil.ReadFile(answerFilePath)
+	answerWords := strings.Split(string(answerFileContent), "\n")
+	var fiveLetterAnswerWords []string
+	for _, word := range answerWords {
+		if len(word) == 5 {
+			fiveLetterAnswerWords = append(fiveLetterAnswerWords, word)
+		}
+	}
+
+	var scores []Score
+	for _, guessWord := range fiveLetterGuessWords {
+		score := 0
+		for _, answerWord := range fiveLetterAnswerWords {
+			for i := 0; i < 5; i++ {
+				tempScore, _ := getColor(guessWord, answerWord, i)
+				score += tempScore
+			}
+		}
+		scores = append(scores, Score{word: guessWord, score: score})
+	}
+
+	// Sort the words by score
+	sort.Slice(scores, func(i, j int) bool {
+		return scores[i].score > scores[j].score
+	})
+
+	// Write the results to a new file
+	var outputData []string
+	for _, score := range scores {
+		outputData = append(outputData, fmt.Sprintf("%s,%d", score.word, score.score))
+	}
+	_ = ioutil.WriteFile(outputFilePath, []byte(strings.Join(outputData, "\n")), 0644)
+	fmt.Println("Word stats generated!")
+}
+
 func executeTKeyPress(wordArray []string, aiwordArray []AiWord) {
 	start := time.Now()
 	result := getGuess(wordArray, aiwordArray)
@@ -149,6 +204,7 @@ func executeTKeyPress(wordArray []string, aiwordArray []AiWord) {
 }
 
 func main() {
+	calculateBestGuesses("wordle-allowed-guesses.txt", "wordle-answers-alphabetical.txt", "wordle-stats.txt")
 	wordArray, _ := readLines("wordle-allowed-guesses.txt")
 	aiwordArray, _ := readAiWords("wordle-stats.txt")
 	executeTKeyPress(wordArray, aiwordArray)
